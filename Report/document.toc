@@ -1,0 +1,21 @@
+\contentsline {section}{\numberline {1}Introduction}{1}{section.1}%
+\contentsline {section}{\numberline {2}Background}{1}{section.2}%
+\contentsline {subsection}{\numberline {2.1}Water}{1}{subsection.2.1}%
+\contentsline {subsection}{\numberline {2.2}Reverse Monte Carlo}{2}{subsection.2.2}%
+\contentsline {subsection}{\numberline {2.3}Condensed Matter Theory}{3}{subsection.2.3}%
+\contentsline {subsubsection}{\numberline {2.3.1}Neutron Diffraction}{3}{subsubsection.2.3.1}%
+\contentsline {subsubsection}{\numberline {2.3.2}Radial Distribution Function}{5}{subsubsection.2.3.2}%
+\contentsline {section}{\numberline {3}Methodology}{5}{section.3}%
+\contentsline {subsection}{\numberline {3.1}Software}{5}{subsection.3.1}%
+\contentsline {subsubsection}{\numberline {3.1.1}Dissolve}{5}{subsubsection.3.1.1}%
+\contentsline {subsubsection}{\numberline {3.1.2}Hydrogen Bond Network Measurement}{5}{subsubsection.3.1.2}%
+\contentsline {section}{\numberline {4}Results}{6}{section.4}%
+\contentsline {section}{\numberline {5}Discussion}{9}{section.5}%
+\contentsline {subsection}{\numberline {5.1}Comparison with Past Work}{9}{subsection.5.1}%
+\contentsline {subsection}{\numberline {5.2}Limitations}{9}{subsection.5.2}%
+\contentsline {subsection}{\numberline {5.3}Impact and Further Research}{9}{subsection.5.3}%
+\contentsline {section}{\numberline {6}Conclusion}{9}{section.6}%
+\contentsline {section}{\numberline {7}Appendices}{9}{section.7}%
+\contentsline {subsection}{\numberline {7.1}Acknowledgements}{9}{subsection.7.1}%
+\contentsline {subsection}{\numberline {7.2}Code}{10}{subsection.7.2}%
+\contentsline {subsection}{\numberline {7.3}References}{10}{subsection.7.3}%

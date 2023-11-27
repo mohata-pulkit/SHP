@@ -1,0 +1,284 @@
+# Input file written by Dissolve v1.3.3 @ 739510f at 10:32:48 on 09-10-2023.
+
+#==============================================================================#
+#                                 Master Terms                                 #
+#==============================================================================#
+
+Master
+  Bond  'HW-OW'  Harmonic  k=4431.53 eq=1
+  Angle  'HW-OW-HW'  Harmonic  k=317.5656 eq=113.24
+EndMaster
+
+#==============================================================================#
+#                                   Species                                    #
+#==============================================================================#
+
+Species 'Water'
+  # Atoms
+  NAtoms  3
+  Atom    1  O    -2.343623e-01  -2.823851e-01  2.315089e-05  'OW'  -8.200000e-01
+  Atom    2  H    7.594842e-01  -3.920801e-01  -7.243147e-05  'HW'  4.100000e-01
+  Atom    3  H    -5.251219e-01  6.744652e-01  4.928058e-05  'HW'  4.100000e-01
+
+  # Bonds
+  NBonds  2
+  Bond    1    2  @HW-OW
+  Bond    1    3  @HW-OW
+
+  # Angles
+  NAngles  1
+  Angle    3    1    2  @HW-OW-HW
+
+  # Isotopologues
+  Isotopologue  'Deuterated'  HW=2
+
+  # Sites
+  Site  'COM'
+    Origin  1  2  3
+    OriginMassWeighted  True
+    XAxis  1
+    YAxis  3
+  EndSite
+  Site  'O'
+    Origin  1
+  EndSite
+  Site  'H1'
+    Origin  3
+  EndSite
+  Site  'H2'
+    Origin  2
+  EndSite
+EndSpecies
+
+#==============================================================================#
+#                               Pair Potentials                                #
+#==============================================================================#
+
+PairPotentials
+  # Atom Type Parameters
+  Parameters  OW  O  -8.200000e-01  LJ  epsilon=0.6503 sigma=3.165492
+  Parameters  HW  H  4.100000e-01  LJ  epsilon=0 sigma=0
+  Range  15
+  Delta  0.005
+  CoulombTruncation  Shifted
+  ShortRangeTruncation  Shifted
+EndPairPotentials
+
+#==============================================================================#
+#                                Configurations                                #
+#==============================================================================#
+
+Configuration  'Bulk'
+
+  # Generator
+  Generator
+    Box  'Box01'
+      Lengths  1  1  1
+      Angles  90  90  90
+    EndBox
+    Parameters  'Parameters01'
+      Parameter  rho  0.1
+      Parameter  multiplier  1000
+    EndParameters
+    CoordinateSets  'Water_Sets'
+      Species  'Water'
+      Source  MD
+      NSets  '100'
+      NSteps  '2000'
+      DeltaT  '0.0005'
+    EndCoordinateSets
+    Add  'Water'
+      CoordinateSets  'Water_Sets'
+      Population  '1*multiplier'
+      Density  'rho'  atoms/A3
+      BoxAction  AddVolume
+      Positioning  Random
+      Rotate  True
+    EndAdd
+  EndGenerator
+
+  Temperature  298
+
+  SizeFactor  1
+EndConfiguration
+
+#==============================================================================#
+#                              Processing Layers                               #
+#==============================================================================#
+
+Layer  'Evolve (Standard)'
+  Frequency  1
+
+  Module  MolShake  'MolShake'
+    Frequency  1
+    Configuration  'Bulk'
+    RotationStepSize  16.453700906161927
+    TranslationStepSize  0.17261625693624322
+  EndModule
+
+  Module  MD  'MD'
+    Frequency  5
+    Configuration  'Bulk'
+    Timestep  Auto
+  EndModule
+
+  Module  Energy  'Energy'
+    Frequency  1
+    Configuration  'Bulk'
+    Save  True
+  EndModule
+EndLayer
+
+Layer  'G(r) / Neutron S(Q)'
+  Frequency  5
+  RequireNoSizeFactors
+
+  Module  GR  'GR'
+    Frequency  1
+    Configurations  'Bulk'
+    AveragingScheme  Linear
+    IntraBroadening  'Gaussian'  0.18
+    Method  Auto
+  EndModule
+
+  Module  SQ  'SQ'
+    Frequency  1
+    SourceGR  'GR'
+    QBroadening  'OmegaDependentGaussian'  0.02
+    WindowFunction  None
+    BraggQBroadening  'GaussianC2'  0  0.02
+    AveragingScheme  Linear
+  EndModule
+
+  Module  NeutronSQ  'H2O'
+    Frequency  1
+    SourceSQs  'SQ'
+    NormaliseTo  None
+    Reference  xy  'SLS18498-H2O.mint01'
+    EndReference
+    ReferenceNormalisedTo  None
+    ReferenceWindowFunction  Lorch0
+    SaveGR  True
+    SaveReference  True
+    SaveRepresentativeGR  True
+    SaveSQ  True
+  EndModule
+
+  Module  NeutronSQ  'D2O'
+    Frequency  1
+    SourceSQs  'SQ'
+    Isotopologue  'Water'  'Deuterated'  1
+    NormaliseTo  None
+    Reference  xy  'SLS18502-D2O.mint01'
+    EndReference
+    ReferenceNormalisedTo  None
+    ReferenceWindowFunction  Lorch0
+    SaveGR  True
+    SaveReference  True
+    SaveRepresentativeGR  True
+    SaveSQ  True
+  EndModule
+
+  Module  NeutronSQ  'HDO'
+    Frequency  1
+    SourceSQs  'SQ'
+    Exchangeable  HW
+    Isotopologue  'Water'  'Natural'  1
+    Isotopologue  'Water'  'Deuterated'  1
+    NormaliseTo  None
+    Reference  xy  'SLS18500-HDO5050.mint01'
+    EndReference
+    ReferenceNormalisedTo  None
+    ReferenceWindowFunction  Lorch0
+    SaveGR  True
+    SaveReference  True
+    SaveRepresentativeGR  True
+    SaveSQ  True
+  EndModule
+EndLayer
+
+Layer  'Refine (EPSR)'
+  Frequency  5
+  RequireEnergyStability
+  RequireNoSizeFactors
+
+  Module  EPSR  'EPSR'
+    Frequency  1
+    Target  'H2O'
+    Target  'D2O'
+    Target  'HDO'
+    ExpansionFunction  Poisson
+    InpAFile  ''
+    PCofFile  ''
+    SaveDifferenceFunctions  True
+    SaveEmpiricalPotentials  True
+    SaveEstimatedPartials  True
+    SavePCof  True
+    SaveSimulatedFR  True
+  EndModule
+EndLayer
+
+Layer  'Analyse RDF/CN'
+  Frequency  1
+  RequireNoSizeFactors
+
+  Module  SiteRDF  'SiteRDF'
+    Frequency  1
+    Configuration  'Bulk'
+    SiteA  'Water'  'COM'
+    SiteB  'Water'  'COM'
+    DistanceRange  0.000000e+00  1.000000e+01  5.000000e-02
+    ExcludeSameMolecule  True
+    RangeA  0.000000e+00  3.500000e+00
+    RangeB  3.000000e+00  6.000000e+00
+    RangeC  6.000000e+00  9.000000e+00
+    Export  xy  'RDF'
+    EndExport
+    ExportInstantaneousCN  True
+  EndModule
+EndLayer
+
+Layer  'Analyse AvgMol/SDF'
+  Frequency  1
+  RequireEnergyStability
+  RequireNoSizeFactors
+
+  Module  AvgMol  'AvgMol'
+    Frequency  1
+    Configuration  'Bulk'
+    Site  'Water'  'COM'
+  EndModule
+
+  Module  SDF  'SDF'
+    Frequency  1
+    Configuration  'Bulk'
+    SiteA  'Water'  'COM'
+    SiteB  'Water'  'O'
+    RangeX  -1.000000e+01  1.000000e+01  5.000000e-01
+    RangeY  -1.000000e+01  1.000000e+01  5.000000e-01
+    RangeZ  -1.000000e+01  1.000000e+01  5.000000e-01
+    ExportSDF  block  'SDF'
+    EndExportSDF
+  EndModule
+EndLayer
+
+Layer  'Analyse HBond'
+  Frequency  1
+
+  Module  DAngle  'DAngle'
+    Frequency  1
+    Configuration  'Bulk'
+    SiteA  'Water'  'O'
+    SiteB  'Water'  'H1'  'Water'  'H2'
+    SiteC  'Water'  'O'
+    DistanceRange  0.000000e+00  5.000000e+00  5.000000e-02
+    AngleRange  0.000000e+00  1.800000e+02  1.000000e+00
+    ExcludeSameMolecule  True
+    ExportRDF  xy  'HBondRDF'
+    EndExportRDF
+    ExportAngle  xy  'HBondAngle'
+    EndExportAngle
+    ExportDAngle  block  'HBondDAngle'
+    EndExportDAngle
+  EndModule
+EndLayer
